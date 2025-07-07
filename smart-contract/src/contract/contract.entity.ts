@@ -1,5 +1,6 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, OneToMany, JoinColumn } from 'typeorm';
 import { User } from '../user/user.entity';
+import { Task } from '../task/task.entity';
 
 export enum ContractType {
   SUPPLIER = 'supplier',
@@ -138,4 +139,7 @@ export class Contract {
 
   @Column({ nullable: true })
   stakeholderId: string;
+
+  @OneToMany(() => Task, task => task.contract)
+  tasks: Task[];
 } 

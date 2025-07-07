@@ -23,8 +23,24 @@ services:
       POSTGRES_USER: smartuser
       POSTGRES_PASSWORD: smartpassword
       POSTGRES_DB: smartcontract
+      POSTGRES_MULTIPLE_DATABASES: smartcontract,smartcontract_readonly
     volumes:
       - pgdata:/var/lib/postgresql/data
+      - ./init-db.sh:/docker-entrypoint-initdb.d/init-db.sh
+
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: smartcontract-pgadmin
+    ports:
+      - '8080:80'
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@example.com
+      PGADMIN_DEFAULT_PASSWORD: password123
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    depends_on:
+      - postgres
 
 volumes:
-  pgdata: 
+  pgdata:
+  pgadmin_data: 

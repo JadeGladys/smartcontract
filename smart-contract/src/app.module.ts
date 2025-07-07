@@ -8,6 +8,7 @@ import { User } from './user/user.entity';
 import { Contract } from './contract/contract.entity';
 import { ContractTask } from './task/task.entity';
 import { AuthModule } from './auth/auth.module';
+import { ContractModule } from './contract/contract.module';
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { AuthModule } from './auth/auth.module';
     }),
     TypeOrmModule.forFeature([User, Contract, ContractTask]),
     AuthModule,
+    ContractModule,
   ],
   controllers: [AppController],
   providers: [AppService],
