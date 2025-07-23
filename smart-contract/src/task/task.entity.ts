@@ -28,7 +28,7 @@ export enum TaskPriority {
 }
 
 @Entity('contract_tasks')
-export class ContractTask {
+export class Task {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
@@ -36,7 +36,7 @@ export class ContractTask {
   title: string;
 
   @Column({ type: 'text', nullable: true })
-  description: string;
+  description: string | null;
 
   @Column({
     type: 'enum',
@@ -62,10 +62,10 @@ export class ContractTask {
   dueDate: Date;
 
   @Column({ type: 'date', nullable: true })
-  completedDate: Date;
+  completedDate: Date | null;
 
   @Column({ type: 'jsonb', nullable: true })
-  metadata: Record<string, any>;
+  metadata: Record<string, any> | null;
 
   @CreateDateColumn()
   createdAt: Date;
@@ -81,11 +81,11 @@ export class ContractTask {
   @Column()
   contractId: string;
 
-  @ManyToOne(() => User, user => user.id)
+  @ManyToOne(() => User, user => user.id, { nullable: true })
   @JoinColumn({ name: 'assignedToId' })
   assignedTo: User;
 
-  @Column()
+  @Column({ nullable: true })
   assignedToId: string;
 
   @ManyToOne(() => User, user => user.id)

@@ -6,9 +6,11 @@ import { AppService } from './app.service';
 import { getDatabaseConfig } from './config/database.config';
 import { User } from './user/user.entity';
 import { Contract } from './contract/contract.entity';
-import { ContractTask } from './task/task.entity';
+import { Task } from './task/task.entity';
 import { AuthModule } from './auth/auth.module';
 import { ContractModule } from './contract/contract.module';
+import { TaskModule } from './task/task.module';
+import { CommentModule } from './contract/comments/comment.module';
 
 @Module({
   imports: [
@@ -21,9 +23,11 @@ import { ContractModule } from './contract/contract.module';
       useFactory: (configService: ConfigService) => getDatabaseConfig(configService),
       inject: [ConfigService],
     }),
-    TypeOrmModule.forFeature([User, Contract, ContractTask]),
+    TypeOrmModule.forFeature([User, Contract, Task]),
     AuthModule,
     ContractModule,
+    TaskModule,
+    CommentModule,
   ],
   controllers: [AppController],
   providers: [AppService],

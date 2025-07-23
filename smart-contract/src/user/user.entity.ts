@@ -1,6 +1,7 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, OneToMany } from 'typeorm';
 import { Contract } from '../contract/contract.entity';
-import { Task } from '../task/task.entity';
+import { Task } from '../task/task.entity'
+import { Comment } from '../contract/comments/comment.entity';
 
 export enum UserRole {
   ADMIN = 'admin',
@@ -56,4 +57,7 @@ export class User {
 
   @OneToMany(() => Task, task => task.assignedTo)
   tasks: Task[];
+
+  @OneToMany(() => Comment, comment => comment.author)
+  comments: Comment[];
 } 
