@@ -11,6 +11,14 @@ services:
       - /usr/src/app/node_modules
     env_file:
       - .env
+    environment:
+      - DATABASE_HOST=postgres
+      - DATABASE_PORT=5432
+      - DATABASE_USER=smartuser
+      - DATABASE_PASSWORD=smartpassword
+      - DATABASE_NAME=smartcontract
+      - NODE_ENV=development
+    command: npm run start:dev
     depends_on:
       - postgres
 

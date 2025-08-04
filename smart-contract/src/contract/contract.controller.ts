@@ -41,8 +41,8 @@ export class ContractController {
   @ApiResponse({ status: 200, description: 'Contract approved successfully' })
   @ApiResponse({ status: 404, description: 'Contract not found' })
   @ApiResponse({ status: 403, description: 'Forbidden - Insufficient permissions' })
-  async approveContract(@Param('id') id: string) {
-    return this.contractService.updateStatus(id, ContractStatus.ACTIVE);
+  async approveContract(@Param('id') id: string, @Request() req) {
+    return this.contractService.updateStatus(id, ContractStatus.ACTIVE, req.user);
   }
 
   @Post(':id/reject')
@@ -51,8 +51,8 @@ export class ContractController {
   @ApiResponse({ status: 200, description: 'Contract rejected successfully' })
   @ApiResponse({ status: 404, description: 'Contract not found' })
   @ApiResponse({ status: 403, description: 'Forbidden - Insufficient permissions' })
-  async rejectContract(@Param('id') id: string, @Body('reason') reason: string) {
-    return this.contractService.rejectContract(id, reason);
+  async rejectContract(@Param('id') id: string, @Body('reason') reason: string, @Request() req) {
+    return this.contractService.rejectContract(id, reason, req.user);
   }
 
   @Get()
@@ -135,8 +135,9 @@ export class ContractController {
   async updateStatus(
     @Param('id') id: string,
     @Body('status') status: ContractStatus,
+    @Request() req,
   ) {
-    return this.contractService.updateStatus(id, status);
+    return this.contractService.updateStatus(id, status, req.user);
   }
 
   @Delete(':id')

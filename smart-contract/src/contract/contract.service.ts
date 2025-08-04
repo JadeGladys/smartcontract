@@ -5,6 +5,7 @@ import { Contract, ContractStatus, ContractType } from './contract.entity';
 import { CreateContractDto } from './dto/create-contract.dto';
 import { UpdateContractDto } from './dto/update-contract.dto';
 import { User } from '../user/user.entity';
+import { NotificationService } from '../notifications/notification.service';
 
 export interface ContractFilters {
   type?: ContractType;
@@ -23,6 +24,7 @@ export class ContractService {
     private contractRepository: Repository<Contract>,
     @InjectRepository(User)
     private userRepository: Repository<User>,
+    private notificationService: NotificationService,
   ) {}
 
   async create(createContractDto: CreateContractDto, ownerId: string): Promise<Contract> {
@@ -52,7 +54,14 @@ export class ContractService {
       status: ContractStatus.DRAFT,
     });
 
-    return this.contractRepository.save(contract);
+    const savedContract = await this.contractRepository.save(contract);
+
+    // Notify admins for approval if contract is created as draft
+    if (savedContract.status === ContractStatus.DRAFT) {
+      await this.notificationService.notifyContractApprovalRequired(savedContract);
+    }
+
+    return savedContract;
   }
 
   async findAll(filters: ContractFilters = {}, page = 1, limit = 10): Promise<{
@@ -160,19 +169,33 @@ export class ContractService {
     await this.contractRepository.remove(contract);
   }
 
-  async updateStatus(id: string, status: ContractStatus): Promise<Contract> {
+  async updateStatus(id: string, status: ContractStatus, changedBy: User): Promise<Contract> {
     const contract = await this.findOne(id);
+    const oldStatus = contract.status;
     contract.status = status;
-    return this.contractRepository.save(contract);
+    
+    const updatedContract = await this.contractRepository.save(contract);
+
+    // Notify stakeholders of status change
+    await this.notificationService.notifyContractStatusChanged(updatedContract, oldStatus, status, changedBy);
+
+    return updatedContract;
   }
 
-  async rejectContract(id: string, reason: string): Promise<Contract> {
+  async rejectContract(id: string, reason: string, rejectedBy: User): Promise<Contract> {
     const contract = await this.findOne(id);
+    const oldStatus = contract.status;
     contract.status = ContractStatus.TERMINATED;
     contract.notes = contract.notes 
       ? `${contract.notes}\n\nREJECTED: ${reason}` 
       : `REJECTED: ${reason}`;
-    return this.contractRepository.save(contract);
+    
+    const updatedContract = await this.contractRepository.save(contract);
+
+    // Notify stakeholders of rejection
+    await this.notificationService.notifyContractStatusChanged(updatedContract, oldStatus, ContractStatus.TERMINATED, rejectedBy);
+
+    return updatedContract;
   }
 
   async getExpiringContracts(daysThreshold = 30): Promise<Contract[]> {

@@ -11,6 +11,10 @@ import { AuthModule } from './auth/auth.module';
 import { ContractModule } from './contract/contract.module';
 import { TaskModule } from './task/task.module';
 import { CommentModule } from './contract/comments/comment.module';
+import { NotificationModule } from './notifications/notification.module';
+import { DashboardModule } from './dashboard/dashboard.module';
+import { Notification } from './notifications/notification.entity';
+import { AuditLog } from './notifications/audit.entity';
 
 @Module({
   imports: [
@@ -23,11 +27,13 @@ import { CommentModule } from './contract/comments/comment.module';
       useFactory: (configService: ConfigService) => getDatabaseConfig(configService),
       inject: [ConfigService],
     }),
-    TypeOrmModule.forFeature([User, Contract, Task]),
+    TypeOrmModule.forFeature([User, Contract, Task, Notification, AuditLog]),
     AuthModule,
     ContractModule,
     TaskModule,
     CommentModule,
+    NotificationModule,
+    DashboardModule,
   ],
   controllers: [AppController],
   providers: [AppService],

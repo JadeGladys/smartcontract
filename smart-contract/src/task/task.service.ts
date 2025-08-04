@@ -6,6 +6,7 @@ import { Contract } from '../contract/contract.entity';
 import { User, UserRole } from '../user/user.entity';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
+import { NotificationService } from '../notifications/notification.service';
 
 @Injectable()
 export class TaskService {
@@ -16,6 +17,7 @@ export class TaskService {
     private contractRepository: Repository<Contract>,
     @InjectRepository(User)
     private userRepository: Repository<User>,
+    private notificationService: NotificationService,
   ) {}
 
   async create(contractId: string, dto: CreateTaskDto, creator: User): Promise<Task> {
@@ -53,7 +55,14 @@ export class TaskService {
       task.assignedTo = assignedTo;
     }
 
-    return this.taskRepository.save(task);
+    const savedTask = await this.taskRepository.save(task);
+
+    // Notify assigned user if task is assigned
+    if (assignedTo) {
+      await this.notificationService.notifyTaskAssigned(savedTask, creator);
+    }
+
+    return savedTask;
   }
 
   async findAllByContract(contractId: string): Promise<Task[]> {
@@ -65,19 +74,40 @@ export class TaskService {
   }
 
   async update(taskId: string, dto: UpdateTaskDto, updater: User): Promise<Task> {
-    const task = await this.taskRepository.findOne({ where: { id: taskId }, relations: ['assignedTo'] });
+    const task = await this.taskRepository.findOne({ 
+      where: { id: taskId }, 
+      relations: ['assignedTo', 'contract', 'createdBy'] 
+    });
     if (!task) throw new NotFoundException('Task not found');
+    
     // Only assigned user or admin/legal can update
     if (task.assignedTo && task.assignedTo.id !== updater.id && ![UserRole.ADMIN, UserRole.LEGAL].includes(updater.role)) {
       throw new ForbiddenException('You do not have permission to update this task');
     }
+    
+    const oldStatus = task.status;
+    const oldAssignedTo = task.assignedTo;
+    
     if (dto.assignedTo) {
       const user = await this.userRepository.findOne({ where: { id: dto.assignedTo } });
       if (!user) throw new BadRequestException('Assigned user not found');
       task.assignedTo = user;
     }
+    
     Object.assign(task, dto);
-    return this.taskRepository.save(task);
+    const updatedTask = await this.taskRepository.save(task);
+
+    // Notify if task is completed
+    if (dto.status === TaskStatus.COMPLETED && oldStatus !== TaskStatus.COMPLETED) {
+      await this.notificationService.notifyTaskCompleted(updatedTask, updater);
+    }
+
+    // Notify if task is reassigned
+    if (dto.assignedTo && oldAssignedTo && oldAssignedTo.id !== dto.assignedTo) {
+      await this.notificationService.notifyTaskAssigned(updatedTask, updater);
+    }
+
+    return updatedTask;
   }
 
   async remove(taskId: string, remover: User): Promise<void> {

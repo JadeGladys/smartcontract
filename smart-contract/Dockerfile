@@ -19,5 +19,5 @@ RUN npm run build
 # Expose port
 EXPOSE 3000
 
-# Start the app
+# Start the app (will be overridden by docker-compose for development)
 CMD ["npm", "run", "start:prod"] 
