@@ -15,6 +15,8 @@ import { NotificationModule } from './notifications/notification.module';
 import { DashboardModule } from './dashboard/dashboard.module';
 import { Notification } from './notifications/notification.entity';
 import { AuditLog } from './notifications/audit.entity';
+import { ContractTemplate } from './contract/templates/contract-template.entity';
+import { TaskCommentsModule } from './task/task-comments/taskcomments.module';
 
 @Module({
   imports: [
@@ -27,13 +29,14 @@ import { AuditLog } from './notifications/audit.entity';
       useFactory: (configService: ConfigService) => getDatabaseConfig(configService),
       inject: [ConfigService],
     }),
-    TypeOrmModule.forFeature([User, Contract, Task, Notification, AuditLog]),
+    TypeOrmModule.forFeature([User, Contract, Task, Notification, AuditLog, ContractTemplate]),
     AuthModule,
     ContractModule,
     TaskModule,
     CommentModule,
     NotificationModule,
     DashboardModule,
+    TaskCommentsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn, ManyToMany, JoinTable } from 'typeorm';
 import { User } from '../user/user.entity';
 import { Contract } from '../contract/contract.entity';
 
@@ -73,6 +73,15 @@ export class Task {
   @UpdateDateColumn()
   updatedAt: Date;
 
+  @Column({ type: 'timestamp', nullable: true })
+  startedAt: Date;
+
+  @Column({ type: 'timestamp', nullable: true })
+  endedAt: Date;
+
+  @Column({ type: 'int', nullable: true })
+  durationMinutes: number;
+
   // Relations
   @ManyToOne(() => Contract, contract => contract.id)
   @JoinColumn({ name: 'contractId' })
@@ -94,4 +103,12 @@ export class Task {
 
   @Column()
   createdById: string;
+
+  @ManyToMany(() => Task)
+  @JoinTable({
+    name: 'task_dependencies',
+    joinColumn: { name: 'taskId', referencedColumnName: 'id' },
+    inverseJoinColumn: { name: 'dependsOnTaskId', referencedColumnName: 'id' },
+  })
+  dependencies: Task[];
 } 
